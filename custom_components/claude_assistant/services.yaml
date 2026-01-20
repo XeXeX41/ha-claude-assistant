@@ -1,0 +1,26 @@
+execute_action:
+  name: Execute Action
+  description: Execute an action based on natural language
+  fields:
+    action:
+      name: Action
+      description: Natural language description of action
+      required: true
+      example: "turn on living room lights"
+      selector:
+        text:
+
+analyze_system:
+  name: Analyze System
+  description: Analyze system for issues and problems
+
+chat:
+  name: Chat
+  description: Chat with Claude
+  fields:
+    message:
+      name: Message
+      description: Message to send to Claude
+      required: true
+      selector:
+        text:

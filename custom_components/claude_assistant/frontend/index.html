@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Claude AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header .subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .message.user .message-avatar {
+            background: #10b981;
+            color: white;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 18px;
+            line-height: 1.5;
+        }
+        
+        .message.assistant .message-content {
+            background: white;
+            color: #1f2937;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message.user .message-content {
+            background: #10b981;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message-content code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        
+        .message-content pre {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .action-executed {
+            background: #dcfce7;
+            border-left: 3px solid #10b981;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #065f46;
+        }
+        
+        .input-container {
+            background: white;
+            border-radius: 24px;
+            padding: 8px 8px 8px 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-container input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            padding: 8px 0;
+        }
+        
+        .input-container button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        
+        .input-container button:hover {
+            transform: scale(1.05);
+        }
+        
+        .input-container button:active {
+            transform: scale(0.95);
+        }
+        
+        .input-container button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .quick-action {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .quick-action:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 15px 20px;
+        }
+        
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+        
+        .status {
+            text-align: center;
+            padding: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+        }
+        
+        .status.connected {
+            color: #10b981;
+        }
+        
+        .status.error {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Claude AI Assistant
+        </h1>
+        <div class="subtitle">Ask me anything about your Home Assistant system</div>
+    </div>
+    
+    <div class="chat-container">
+        <div class="quick-actions" id="quickActions">
+            <div class="quick-action" onclick="sendQuickMessage('Turn on all lights')">
+                💡 All Lights On
+            </div>
+            <div class="quick-action" onclick="sendQuickMessage('What is the temperature in the living room?')">
+                🌡️ Check Temperature
+            </div>
+            <div class="quick-action" onclick="sendQuickMessage('Show me unavailable entities')">
+                ⚠️ Check Unavailable
+            </div>
+            <div class="quick-action" onclick="sendQuickMessage('What batteries are low?')">
+                🔋 Battery Status
+            </div>
+        </div>
+        
+        <div class="messages" id="messages">
+            <div class="message assistant">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    Hi! I'm Claude, your AI assistant with full access to your Home Assistant system. 
+                    I can see all your devices and control them!
+                    <br><br>
+                    Try asking me:
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>"Turn on the living room lights"</li>
+                        <li>"Set thermostat to 21 degrees"</li>
+                        <li>"What entities are unavailable?"</li>
+                    </ul>
+                    What can I help you with?
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Ask Claude anything..."
+                onkeypress="handleKeyPress(event)"
+            >
+            <button onclick="sendMessage()" id="sendButton">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="status" id="status">Ready</div>
+    </div>
+    
+    <script>
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const status = document.getElementById('status');
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        function sendQuickMessage(message) {
+            messageInput.value = message;
+            sendMessage();
+        }
+        
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            messageInput.value = '';
+            addMessage('user', message);
+            
+            const typingId = showTyping();
+            sendButton.disabled = true;
+            
+            // Simulate response (in real integration, this calls HA service)
+            setTimeout(() => {
+                removeTyping(typingId);
+                addMessage('assistant', 'This is a preview. In the real integration, I would process your request and control your devices!');
+                sendButton.disabled = false;
+                messageInput.focus();
+            }, 1500);
+        }
+        
+        function addMessage(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = role === 'assistant' ? '🤖' : '👤';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = formatMessage(content);
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function formatMessage(text) {
+            text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+            text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+            text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/\n/g, '<br>');
+            
+            if (text.includes('✅ Actions executed:')) {
+                const parts = text.split('✅ Actions executed:');
+                return parts[0] + '<div class="action-executed">✅ Actions executed:' + parts[1] + '</div>';
+            }
+            
+            return text;
+        }
+        
+        function showTyping() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message assistant';
+            typingDiv.id = 'typing-' + Date.now();
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = '🤖';
+            
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator';
+            typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+            
+            typingDiv.appendChild(avatar);
+            typingDiv.appendChild(typingIndicator);
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            return typingDiv.id;
+        }
+        
+        function removeTyping(typingId) {
+            const typingDiv = document.getElementById(typingId);
+            if (typingDiv) {
+                typingDiv.remove();
+            }
+        }
+    </script>
+</body>
+</html>

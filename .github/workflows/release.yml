@@ -1,0 +1,26 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Create zip
+        run: |
+          cd custom_components/claude_assistant
+          zip -r ../../claude_assistant.zip .
+
+      - name: Upload zip to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: claude_assistant.zip
+          asset_name: claude_assistant.zip
+          tag: ${{ github.ref }}

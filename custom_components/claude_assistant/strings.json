@@ -1,0 +1,19 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Claude AI Assistant",
+        "description": "Enter your Anthropic API key from https://console.anthropic.com/",
+        "data": {
+          "api_key": "API Key"
+        }
+      }
+    },
+    "error": {
+      "invalid_api_key": "Invalid API key. Please check and try again."
+    },
+    "abort": {
+      "already_configured": "Claude AI Assistant is already configured"
+    }
+  }
+}

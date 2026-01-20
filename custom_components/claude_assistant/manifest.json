@@ -1,0 +1,13 @@
+{
+  "domain": "claude_assistant",
+  "name": "Claude AI Assistant",
+  "codeowners": ["@XeXeX41"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/XeXeX41/ha-claude-assistant",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/XeXeX41/ha-claude-assistant/issues",
+  "requirements": ["anthropic==0.39.0"],
+  "version": "1.0.0"
+}
