@@ -41,3 +41,4 @@ class ClaudeAssistantConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 "api_key_url": "https://console.anthropic.com/"
             },
         )
+        
