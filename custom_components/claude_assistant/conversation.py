@@ -17,7 +17,8 @@ class ClaudeConversationAgent(conversation.AbstractConversationAgent):
     def __init__(self, hass: HomeAssistant, api_key: str):
         """Initialize agent."""
         self.hass = hass
-        self.client = anthropic.Anthropic(api_key=api_key)
+        self.api_key = api_key
+        self.client = None  # Lazy initialization
         self.conversation_history = []
     
     @property
@@ -29,6 +30,22 @@ class ClaudeConversationAgent(conversation.AbstractConversationAgent):
         self, user_input: conversation.ConversationInput
     ) -> conversation.ConversationResult:
         """Process user input."""
+        
+        # Create client on first use to avoid initialization errors
+        if self.client is None:
+            try:
+                # Create client without any proxy configuration
+                self.client = anthropic.Anthropic(api_key=self.api_key)
+            except Exception as e:
+                _LOGGER.error(f"Failed to create Anthropic client: {e}")
+                intent_response = intent.IntentResponse(language=user_input.language)
+                intent_response.async_set_speech(
+                    "Sorry, I couldn't connect to Claude AI. Please check your API key."
+                )
+                return conversation.ConversationResult(
+                    response=intent_response,
+                    conversation_id=user_input.conversation_id,
+                )
         
         # Gather system context
         context = await self._gather_system_context()
@@ -323,7 +340,6 @@ The user trusts you to control their home. Be accurate and helpful!"""
     
     async def async_execute_action(self, action_text: str) -> dict:
         """Execute an action based on natural language."""
-        # Simple wrapper for service calls
         return {"success": True, "message": "Action executed"}
     
     async def async_analyze_system(self) -> str:
@@ -335,7 +351,7 @@ The user trusts you to control their home. Be accurate and helpful!"""
         return "Chat response"
 
 
-async def async_setup_entry(hass, config_entry):
+async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up conversation platform."""
     from . import CONF_API_KEY
     api_key = config_entry.data[CONF_API_KEY]

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Claude AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--primary-background-color, #fafafa);
+            color: var(--primary-text-color, #212121);
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            height: 100%;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: var(--primary-color, #03a9f4);
+            color: white;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .message.user .message-avatar {
+            background: var(--primary-color, #03a9f4);
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background: #9c27b0;
+            color: white;
+        }
+
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 16px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: var(--primary-color, #03a9f4);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant .message-content {
+            background: var(--secondary-background-color, #e1e1e1);
+            color: var(--primary-text-color, #212121);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: var(--card-background-color, white);
+            border-top: 1px solid var(--divider-color, #e0e0e0);
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 12px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--divider-color, #e0e0e0);
+            border-radius: 24px;
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            background: var(--primary-background-color, #fafafa);
+            color: var(--primary-text-color, #212121);
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary-color, #03a9f4);
+        }
+
+        .send-button {
+            padding: 12px 24px;
+            background: var(--primary-color, #03a9f4);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .send-button:hover {
+            background: var(--dark-primary-color, #0288d1);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(3, 169, 244, 0.3);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        .send-button:disabled {
+            background: var(--disabled-text-color, #9e9e9e);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--secondary-text-color, #757575);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--secondary-text-color, #757575);
+        }
+
+        .welcome-message h2 {
+            font-size: 28px;
+            font-weight: 400;
+            margin-bottom: 12px;
+            color: var(--primary-text-color, #212121);
+        }
+
+        .welcome-message p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .error-message {
+            background: #f44336;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                --primary-background-color: #111111;
+                --secondary-background-color: #1e1e1e;
+                --card-background-color: #1e1e1e;
+                --primary-text-color: #e1e1e1;
+                --secondary-text-color: #9e9e9e;
+                --divider-color: #333333;
+            }
+
+            .message.assistant .message-content {
+                background: #2d2d2d;
+                color: #e1e1e1;
+            }
+
+            .chat-input {
+                background: #1e1e1e;
+                color: #e1e1e1;
+            }
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .message {
+                max-width: 90%;
+            }
+
+            .chat-header h1 {
+                font-size: 20px;
+            }
+
+            .chat-input-container {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🤖 Claude AI Assistant</h1>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <h2>Welcome to Claude AI</h2>
+                <p>I can help you control your Home Assistant devices and answer questions.</p>
+                <p>Try asking me to turn on lights, adjust temperature, or get device status!</p>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <input 
+                    type="text" 
+                    class="chat-input" 
+                    id="chatInput" 
+                    placeholder="Ask Claude anything..."
+                    autocomplete="off"
+                >
+                <button class="send-button" id="sendButton">
+                    <span>Send</span>
+                    <span>→</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let connection = null;
+        let messageId = 1;
+
+        // Connect to Home Assistant WebSocket
+        async function connectWebSocket() {
+            try {
+                const auth = await window.parent.auth;
+                const hassUrl = window.parent.hassUrl || window.location.origin;
+                
+                connection = new WebSocket(`${hassUrl.replace('http', 'ws')}/api/websocket`);
+                
+                connection.onopen = () => {
+                    console.log('WebSocket connected');
+                };
+
+                connection.onmessage = async (event) => {
+                    const message = JSON.parse(event.data);
+                    
+                    if (message.type === 'auth_required') {
+                        connection.send(JSON.stringify({
+                            type: 'auth',
+                            access_token: await auth.getAccessToken()
+                        }));
+                    } else if (message.type === 'auth_ok') {
+                        console.log('Authenticated with Home Assistant');
+                    } else if (message.type === 'result') {
+                        handleResponse(message);
+                    }
+                };
+
+                connection.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    showError('Connection error. Please refresh the page.');
+                };
+
+            } catch (error) {
+                console.error('Failed to connect:', error);
+                showError('Failed to connect to Home Assistant.');
+            }
+        }
+
+        function sendMessage(text) {
+            if (!text.trim()) return;
+
+            // Add user message to chat
+            addMessage(text, 'user');
+
+            // Clear input
+            document.getElementById('chatInput').value = '';
+
+            // Show typing indicator
+            showTyping();
+
+            // Send to Claude via conversation integration
+            if (connection && connection.readyState === WebSocket.OPEN) {
+                connection.send(JSON.stringify({
+                    id: messageId++,
+                    type: 'conversation/process',
+                    text: text,
+                    conversation_id: null,
+                    language: 'en',
+                    agent_id: null  // Will use default agent (Claude)
+                }));
+            } else {
+                hideTyping();
+                showError('Not connected to Home Assistant.');
+            }
+        }
+
+        function handleResponse(message) {
+            hideTyping();
+
+            if (message.success && message.result && message.result.response) {
+                const responseText = message.result.response.speech.plain.speech;
+                addMessage(responseText, 'assistant');
+            } else {
+                showError('Failed to get response from Claude.');
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chatMessages');
+            
+            // Remove welcome message if it exists
+            const welcome = messagesContainer.querySelector('.welcome-message');
+            if (welcome) welcome.remove();
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = sender === 'user' ? 'U' : 'C';
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = text;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTyping() {
+            const messagesContainer = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message assistant';
+            typingDiv.id = 'typingIndicator';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = 'C';
+            
+            const indicator = document.createElement('div');
+            indicator.className = 'message-content typing-indicator';
+            indicator.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+            
+            typingDiv.appendChild(avatar);
+            typingDiv.appendChild(indicator);
+            messagesContainer.appendChild(typingDiv);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTyping() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        function showError(message) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            messagesContainer.appendChild(errorDiv);
+            
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        // Event listeners
+        document.getElementById('sendButton').addEventListener('click', () => {
+            const input = document.getElementById('chatInput');
+            sendMessage(input.value);
+        });
+
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage(e.target.value);
+            }
+        });
+
+        // Initialize
+        connectWebSocket();
+    </script>
+</body>
+</html>
