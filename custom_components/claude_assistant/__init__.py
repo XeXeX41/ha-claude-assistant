@@ -37,18 +37,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_register_panel(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Register the Claude AI panel in the sidebar."""
     
-    # Get the path to the HTML file
+    # Get paths
     integration_dir = Path(__file__).parent
-    panel_path = integration_dir / "claude_assistant_panel.html"
+    panel_source = integration_dir / "claude_assistant_panel.html"
+    www_dir = Path(hass.config.path("www"))
+    panel_dest = www_dir / "claude_assistant_panel.html"
     
-    # Register the HTML file as a static resource
-    hass.http.register_static_path(
-        "/local/claude_assistant_panel.html",
-        str(panel_path),
-        cache_headers=False
-    )
+    # Ensure www directory exists
+    await hass.async_add_executor_job(www_dir.mkdir, parents=True, exist_ok=True)
     
-    # Register as iframe panel pointing to the static file
+    # Copy HTML file to www directory so HA can serve it
+    if panel_source.exists():
+        await hass.async_add_executor_job(
+            lambda: panel_dest.write_text(panel_source.read_text(encoding='utf-8'), encoding='utf-8')
+        )
+        _LOGGER.info(f"Copied panel HTML to {panel_dest}")
+    
+    # Register panel as iframe pointing to www file
     frontend.async_register_built_in_panel(
         hass,
         component_name="iframe",
